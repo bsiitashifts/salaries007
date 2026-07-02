@@ -1,0 +1,648 @@
+﻿<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Salaries</title>
+  <meta name="theme-color" content="#040404">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Salaries">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" href="./icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="./icon-192.png">
+  <style>
+    :root {
+      --bg: #040404;
+      --panel: #0d0d0f;
+      --line: #202024;
+      --text: #f5f5f5;
+      --muted: #9a9aa3;
+      --accent: #ffffff;
+      --success: #77f0a5;
+      --button: #18181c;
+      --button-hover: #232329;
+      --chip: #111114;
+      --input: #121216;
+      --input-border: #2a2a31;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at top, rgba(255, 255, 255, 0.05), transparent 28%),
+        linear-gradient(180deg, #080808 0%, #020202 100%);
+      color: var(--text);
+      font-family: "Segoe UI", Tahoma, Arial, sans-serif;
+      padding: 18px;
+    }
+
+    .login-screen {
+      position: fixed;
+      inset: 0;
+      z-index: 50;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background:
+        radial-gradient(circle at top, rgba(255, 255, 255, 0.06), transparent 25%),
+        rgba(4, 4, 4, 0.96);
+    }
+
+    .login-screen[hidden] {
+      display: none;
+    }
+
+    .login-card {
+      width: min(420px, 100%);
+      background: rgba(13, 13, 15, 0.98);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 24px;
+      padding: 24px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
+    }
+
+    .login-title {
+      margin: 0 0 8px;
+      font-size: 28px;
+      font-weight: 800;
+    }
+
+    .login-subtitle {
+      margin: 0 0 20px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .login-form,
+    .login-label {
+      display: grid;
+      gap: 12px;
+    }
+
+    .login-label {
+      gap: 8px;
+      font-size: 14px;
+    }
+
+    .wrap {
+      width: min(1180px, 100%);
+      margin: 0 auto;
+      background: rgba(13, 13, 15, 0.95);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 24px;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
+      backdrop-filter: blur(10px);
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 24px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .title {
+      margin: 0;
+      font-size: clamp(26px, 4vw, 36px);
+      font-weight: 800;
+      letter-spacing: 0.02em;
+    }
+
+    .toolbar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .toolbar-note {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .install-btn[hidden] {
+      display: none;
+    }
+
+    .table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+    }
+
+    .table th,
+    .table td {
+      padding: 16px 18px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: middle;
+      word-break: break-word;
+      overflow: hidden;
+    }
+
+    .table th {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+    }
+
+    .table tr:last-child td {
+      border-bottom: 0;
+    }
+
+    .index {
+      width: 52px;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    .name-cell,
+    .score,
+    .id-cell {
+      font-size: 18px;
+    }
+
+    .name-cell {
+      font-weight: 700;
+    }
+
+    .name-cell,
+    .name-value,
+    .name-input {
+      direction: rtl;
+      text-align: right;
+      unicode-bidi: plaintext;
+    }
+
+    .name-wrap {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .check {
+      opacity: 0;
+      transform: scale(0.8);
+      transition: opacity 0.2s ease, transform 0.2s ease;
+      color: var(--success);
+      font-size: 16px;
+    }
+
+    .row.copied .check {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    .score,
+    .id-cell {
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+
+    .ac-pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 56px;
+      padding: 9px 12px;
+      border-radius: 999px;
+      background: var(--chip);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      font-size: 14px;
+      white-space: nowrap;
+    }
+
+    .empty {
+      color: #666872;
+    }
+
+    .action-btn,
+    .copy-btn,
+    .edit-input,
+    .edit-select,
+    .login-input {
+      border: 1px solid var(--input-border);
+      border-radius: 14px;
+      background: var(--input);
+      color: var(--text);
+      font-size: 15px;
+      padding: 12px 14px;
+      outline: none;
+    }
+
+    .action-btn,
+    .copy-btn {
+      cursor: pointer;
+      background: var(--button);
+      border-radius: 999px;
+      padding: 10px 14px;
+      transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+    }
+
+    .action-btn:hover,
+    .copy-btn:hover {
+      background: var(--button-hover);
+      border-color: rgba(255, 255, 255, 0.18);
+      transform: translateY(-1px);
+    }
+
+    .edit-input,
+    .edit-select {
+      display: none;
+      width: 100%;
+    }
+
+    body.edit-mode .display-only {
+      display: none;
+    }
+
+    body.edit-mode .edit-input,
+    body.edit-mode .edit-select {
+      display: block;
+    }
+
+    body.edit-mode .view-mode-note {
+      display: none;
+    }
+
+    body:not(.edit-mode) .edit-mode-note {
+      display: none;
+    }
+
+    @media (max-width: 900px) {
+      body {
+        padding: 8px;
+      }
+
+      .header {
+        align-items: flex-start;
+        flex-direction: column;
+        padding: 16px 12px;
+      }
+
+      .toolbar {
+        width: 100%;
+        gap: 8px;
+      }
+
+      .action-btn {
+        flex: 1 1 auto;
+        font-size: 13px;
+        padding: 9px 10px;
+      }
+
+      .toolbar-note {
+        font-size: 12px;
+      }
+
+      .title {
+        font-size: 22px;
+      }
+
+      .table {
+        table-layout: fixed;
+      }
+
+      .table th,
+      .table td {
+        display: table-cell;
+        width: auto;
+        padding: 10px 6px;
+        font-size: 12px;
+        vertical-align: middle;
+      }
+
+      .table th {
+        font-size: 11px;
+      }
+
+      .table tr {
+        display: table-row;
+      }
+
+      .table tbody {
+        display: table-row-group;
+      }
+
+      .table td::before {
+        content: none;
+      }
+      
+      .index {
+        width: 28px;
+      }
+
+      .name-cell,
+      .score,
+      .id-cell {
+        font-size: 11px;
+      }
+
+      .copy-btn {
+        font-size: 12px;
+        padding: 7px 8px;
+      }
+
+      .ac-pill {
+        min-width: 42px;
+        padding: 6px 8px;
+        font-size: 11px;
+      }
+
+      .name-wrap {
+        gap: 4px;
+      }
+
+      .check {
+        font-size: 11px;
+      }
+
+      .score input,
+      .id-cell input,
+      .name-cell input,
+      .edit-select {
+        font-size: 12px;
+        padding: 8px 8px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <section class="login-screen" id="loginScreen">
+    <div class="login-card">
+      <h2 class="login-title">Login</h2>
+      <p class="login-subtitle">Enter username and password to open the page</p>
+      <form class="login-form" id="loginForm">
+        <label class="login-label">
+          <span>Username</span>
+          <input class="login-input" id="usernameInput" type="text" autocomplete="username" required>
+        </label>
+        <label class="login-label">
+          <span>Password</span>
+          <input class="login-input" id="passwordInput" type="password" autocomplete="current-password" required>
+        </label>
+        <div class="toolbar-note" id="loginError"></div>
+        <button class="action-btn" type="submit">Login</button>
+      </form>
+    </div>
+  </section>
+
+  <main class="wrap">
+    <header class="header">
+      <h1 class="title">Salaries</h1>
+      <div class="toolbar">
+        <button class="action-btn" id="openSheetBtn" type="button">Open Sheet</button>
+        <button class="action-btn install-btn" id="installBtn" type="button" hidden>Install App</button>
+        <span class="toolbar-note view-mode-note">Live data is loaded from Google Sheets</span>
+      </div>
+    </header>
+
+    <table class="table">
+      <thead>
+        <tr>
+          <th class="index">#</th>
+          <th>Name</th>
+          <th>Salary</th>
+          <th>Phone</th>
+          <th>Account</th>
+          <th>Copy</th>
+        </tr>
+      </thead>
+      <tbody id="tableBody">
+        <tr>
+          <td colspan="6" class="toolbar-note">Loading data...</td>
+        </tr>
+      </tbody>
+    </table>
+  </main>
+
+  <script>
+    const validUsername = "bahaa007";
+    const validPassword = "Bahaa12345#";
+    const authKey = "salaries-auth-v1";
+    const passwordKey = "salaries-password-v1";
+    const sheetUrl = "https://docs.google.com/spreadsheets/d/1STiPWMw94CSdcW-Nd6SJuWL3bb4hNNzEC5cJejP9Mwk/edit?gid=390004257#gid=390004257";
+    const sheetGvizUrl = "https://docs.google.com/spreadsheets/d/1STiPWMw94CSdcW-Nd6SJuWL3bb4hNNzEC5cJejP9Mwk/gviz/tq?gid=390004257&sheet=Salaries&tqx=out:json";
+
+    const loginScreen = document.getElementById("loginScreen");
+    const loginForm = document.getElementById("loginForm");
+    const usernameInput = document.getElementById("usernameInput");
+    const passwordInput = document.getElementById("passwordInput");
+    const loginError = document.getElementById("loginError");
+    const tableBody = document.getElementById("tableBody");
+    const openSheetBtn = document.getElementById("openSheetBtn");
+    const installBtn = document.getElementById("installBtn");
+    let deferredInstallPrompt = null;
+
+    function normalizeValue(value) {
+      const trimmed = String(value ?? "").trim();
+      return trimmed === "" ? "-" : trimmed;
+    }
+
+    function openPage() {
+      loginScreen.hidden = true;
+      localStorage.setItem(authKey, "ok");
+    }
+
+    function checkAuth() {
+      const savedPassword = localStorage.getItem(passwordKey);
+      if (savedPassword === validPassword) {
+        usernameInput.value = validUsername;
+        passwordInput.value = savedPassword;
+        openPage();
+        return;
+      }
+
+      if (localStorage.getItem(authKey) === "ok") {
+        openPage();
+      }
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#39;");
+    }
+
+    function formatScore(value) {
+      const numeric = Number(String(value).replaceAll(",", ""));
+      if (Number.isFinite(numeric)) {
+        return numeric.toLocaleString("en-US", {
+          minimumFractionDigits: 0,
+          maximumFractionDigits: 1
+        });
+      }
+      return normalizeValue(value);
+    }
+
+    function renderRows(data) {
+      if (!data.length) {
+        tableBody.innerHTML = `
+          <tr>
+            <td colspan="6" class="toolbar-note">No data found in the sheet.</td>
+          </tr>
+        `;
+        return;
+      }
+
+      tableBody.innerHTML = data.map((item) => {
+        const safeId = escapeHtml(item.id);
+        const safeName = escapeHtml(item.name);
+        const safeScore = escapeHtml(item.score);
+        const safePhone = escapeHtml(item.phone);
+        const safeAccount = escapeHtml(item.account);
+        const phoneClass = item.phone === "-" ? "id-value empty" : "id-value";
+        const accountClass = item.account === "-" ? "ac-pill ac-value empty" : "ac-pill ac-value";
+
+        return `
+          <tr class="row" data-id="${safeId}" data-phone="${safePhone}">
+            <td class="index" data-label="#">${safeId}</td>
+            <td class="name-cell" data-label="Name">
+              <span class="name-wrap">
+                <span class="check">✓</span>
+                <span class="name-value">${safeName}</span>
+              </span>
+            </td>
+            <td class="score" data-label="Salary">
+              <span class="score-value">${safeScore}</span>
+            </td>
+            <td class="id-cell" data-label="Phone">
+              <span class="${phoneClass}">${safePhone}</span>
+            </td>
+            <td data-label="Account">
+              <span class="${accountClass}">${safeAccount}</span>
+            </td>
+            <td data-label="Copy">
+              <button class="copy-btn" type="button">Copy</button>
+            </td>
+          </tr>
+        `;
+      }).join("");
+    }
+
+    function parseSheetResponse(text) {
+      const jsonText = text
+        .replace("/*O_o*/", "")
+        .replace(/^google\.visualization\.Query\.setResponse\(/, "")
+        .replace(/\);\s*$/, "");
+      const payload = JSON.parse(jsonText);
+      const rows = payload.table?.rows ?? [];
+
+      return rows
+        .map((row) => (row.c ?? []).map((cell) => normalizeValue(cell?.f ?? cell?.v ?? "-")))
+        .filter((cells) => cells.some((value) => value !== "-"))
+        .filter((cells) => cells[0] !== "#")
+        .map((cells) => ({
+          id: normalizeValue(cells[0] ?? "-"),
+          name: normalizeValue(cells[1] ?? "-"),
+          score: formatScore(cells[2] ?? "-"),
+          phone: normalizeValue(cells[3] ?? "-"),
+          account: normalizeValue(cells[4] ?? "-")
+        }))
+        .filter((item) => item.id !== "-");
+    }
+
+    async function loadSheetData() {
+      try {
+        const response = await fetch(sheetGvizUrl, { cache: "no-store" });
+        if (!response.ok) {
+          throw new Error("Request failed");
+        }
+
+        const text = await response.text();
+        const data = parseSheetResponse(text);
+        renderRows(data);
+      } catch (error) {
+        tableBody.innerHTML = `
+          <tr>
+            <td colspan="6" class="toolbar-note">
+              Could not load the sheet data. Open the sheet and make sure link access is enabled.
+            </td>
+          </tr>
+        `;
+      }
+    }
+
+    async function copyId(row, button) {
+      const value = normalizeValue(row.dataset.phone);
+      try {
+        await navigator.clipboard.writeText(value);
+        document.querySelectorAll(".row").forEach((item) => item.classList.remove("copied"));
+        row.classList.add("copied");
+        const original = button.textContent;
+        button.textContent = "Copied";
+        setTimeout(() => {
+          button.textContent = original;
+        }, 1200);
+      } catch (error) {
+        button.textContent = "Copy failed";
+        setTimeout(() => {
+          button.textContent = "Copy";
+        }, 1200);
+      }
+    }
+
+    openSheetBtn.addEventListener("click", () => {
+      window.open(sheetUrl, "_blank", "noopener,noreferrer");
+    });
+
+    tableBody.addEventListener("click", (event) => {
+      const button = event.target.closest(".copy-btn");
+      if (!button) return;
+      const row = button.closest(".row");
+      if (!row) return;
+      copyId(row, button);
+    });
+
+    window.addEventListener("beforeinstallprompt", (event) => {
+      event.preventDefault();
+      deferredInstallPrompt = event;
+      installBtn.hidden = false;
+    });
+
+    installBtn.addEventListener("click", async () => {
+      if (!deferredInstallPrompt) return;
+      deferredInstallPrompt.prompt();
+      await deferredInstallPrompt.userChoice;
+      deferredInstallPrompt = null;
+      installBtn.hidden = true;
+    });
+
+    loginForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+      if (usernameInput.value === validUsername && passwordInput.value === validPassword) {
+        loginError.textContent = "";
+        localStorage.setItem(passwordKey, passwordInput.value);
+        openPage();
+      } else {
+        loginError.textContent = "Invalid username or password";
+      }
+    });
+
+    checkAuth();
+    loadSheetData();
+
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("./service-worker.js").catch(() => {});
+      });
+    }
+  </script>
+</body>
+</html>
+
