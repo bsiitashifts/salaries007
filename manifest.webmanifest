@@ -1,7 +1,7 @@
 {
-  "name": "Score List",
-  "short_name": "Score List",
-  "description": "Installable mobile app version of Score List.",
+  "name": "Salaries",
+  "short_name": "Salaries",
+  "description": "Installable mobile app version of Salaries.",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#040404",
@@ -27,3 +27,4 @@
     }
   ]
 }
+
